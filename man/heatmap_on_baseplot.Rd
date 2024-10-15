@@ -6,22 +6,29 @@
 \usage{
 heatmap_on_baseplot(
   x,
-  row_group,
-  col_group,
+  row_group = NULL,
+  col_group = NULL,
   scale = "none",
-  color = rcolorb,
-  margins = c(5, 5),
+  color = RColorBrewer::brewer.pal(11, "RdBu"),
+  limits = NULL,
   cell_height = 1,
   cell_width = 1,
   sep_height = 0,
   sep_width = 0,
-  groupsep_height = 0.5,
-  groupsep_width = 0.5,
-  cex_row = NULL,
-  cex_col = NULL,
-  main = "",
-  xlab = "",
-  ylab = ""
+  groupsep_height = 0.7,
+  groupsep_width = 0.7,
+  side_rowlab = "r",
+  side_rowgrouplab = "l",
+  side_collab = "b",
+  side_colgrouplab = "t",
+  space_rowlab = 0.01,
+  space_rowgrouplab = 0.01,
+  space_collab = 0.01,
+  space_colgrouplab = 0.01,
+  args_rowlab = NULL,
+  args_rowgrouplab = NULL,
+  args_collab = NULL,
+  args_colgrouplab = NULL
 )
 }
 \description{

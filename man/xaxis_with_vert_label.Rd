@@ -19,5 +19,5 @@ xaxis_with_vert_label(at, labels, srt = 90, pos = 0.05, adj = c(1, 0.5))
 and actual positions of labels.}
 }
 \description{
-Convert p-value to significance mark
+Add x-axis with vertical labels
 }

@@ -1,6 +1,5 @@
 #' Convert p-value to significance mark
 #'
-#' @export
 #' Add x-axis with vertical labels
 #'
 #' @param at Equivalent to `at` argument in `axis()` function.
