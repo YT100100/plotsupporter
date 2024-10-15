@@ -6,11 +6,11 @@
 \usage{
 heatmap_on_baseplot(
   x,
-  row_group,
-  col_group,
+  row_group = NULL,
+  col_group = NULL,
   scale = "none",
-  color = rcolorb,
-  margins = c(5, 5),
+  color = RColorBrewer::brewer.pal(11, "RdBu"),
+  limit_color = NULL,
   cell_height = 1,
   cell_width = 1,
   sep_height = 0,
@@ -18,10 +18,7 @@ heatmap_on_baseplot(
   groupsep_height = 0.5,
   groupsep_width = 0.5,
   cex_row = NULL,
-  cex_col = NULL,
-  main = "",
-  xlab = "",
-  ylab = ""
+  cex_col = NULL
 )
 }
 \description{
