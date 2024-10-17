@@ -10,21 +10,12 @@ heatmap_on_baseplot(
   col_group = NULL,
   scale = "none",
   color = RColorBrewer::brewer.pal(11, "RdBu"),
-<<<<<<< HEAD
-  limit_color = NULL,
-=======
+  color_na = "gray95",
   limits = NULL,
->>>>>>> b42f501da68022870e53901b7a96618c691c1f0d
   cell_height = 1,
   cell_width = 1,
   sep_height = 0,
   sep_width = 0,
-<<<<<<< HEAD
-  groupsep_height = 0.5,
-  groupsep_width = 0.5,
-  cex_row = NULL,
-  cex_col = NULL
-=======
   groupsep_height = 0.7,
   groupsep_width = 0.7,
   side_rowlab = "r",
@@ -39,7 +30,6 @@ heatmap_on_baseplot(
   args_rowgrouplab = NULL,
   args_collab = NULL,
   args_colgrouplab = NULL
->>>>>>> b42f501da68022870e53901b7a96618c691c1f0d
 )
 }
 \description{
