@@ -97,7 +97,7 @@ colorbar <- function(
 # groupsep_height = 0.5; groupsep_width = 0.5;
 # cex_row = NULL; cex_col = NULL
 
-heatmap_on_baseplot <- function(
+heatmap_custom <- function(
     x, row_group = NULL, col_group = NULL, scale = 'none',
     color = RColorBrewer::brewer.pal(11, 'RdBu'),
     color_na = 'gray95',
