@@ -3,7 +3,7 @@
 export(axis_label)
 export(colorbar)
 export(convert_pval_to_txt)
-export(heatmap_on_baseplot)
+export(heatmap_custom)
 export(legend_outside)
 export(matplot0)
 export(multiplot_layout)

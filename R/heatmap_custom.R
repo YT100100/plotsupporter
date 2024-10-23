@@ -1,73 +1,192 @@
 #' カラーバーを描画する関数
 #' @export
+#'
+#'
+
 colorbar <- function(
-    x, y, width, height, color, limits, at, n_color = 50, title = 'Value',
-    horizontal = TRUE, lwd_bar = 1, border_color = 'black',
-    tick_len = 0.02, lwd_ticks = 1,
-    show_label = TRUE, cex_label = 1, space_height_label = 0.02,
-    side_title = 'left',
-    space_width_title = 0.03, space_height_title = 0.03, cex_title = 1) {
-  # x <- 1.1
-  # y <- 1.08
-  # width <- 0.3
-  # height <- 0.03
-  # at <- c(1.3, 2, 3, 4)
-  # n_color <- 50
+    x, y,
 
-  # カラーバー用の色を生成
-  val <- seq(0, 1, length.out = n_color)
-  color_all <- rgb(colorRamp(color)(val) / 255)
+    # colorbar detail
+    bar_col = cm.colors(7),
+    n_bar_col = 30,
+    horizontal = TRUE,
 
-  # 対応する座標を作成
-  x_all    <- plot_coord_x(seq(x, x + width, length.out = n_color + 1))
-  x_left   <- x_all[-(n_color + 1)]
-  x_right  <- x_all[-1]
-  x_center <- (x_left + x_right) / 2
-  y_top    <- plot_coord_y(y)
-  y_bottom <- plot_coord_y(y - height)
+    # size information
+    bar_width = if (horizontal) 5 else 1,
+    bar_height = if (horizontal) 1 else 5,
+    margin = c(1, 1, 1, 1), # bottom, left, top, right
+    box_adj = c(0.5, 0.5),
 
-  # カラーバーを描画
-  rect(xleft = x_left, ybottom = y_bottom, xright = x_right, ytop = y_top,
-       col = color_all, border = NA)
-  rect(xleft  = x_left [1]      , ybottom = y_bottom,
-       xright = x_right[n_color], ytop    = y_top,
-       col = NA, border = 'black', lwd = lwd_bar)
+    # colors except for that inside colorbar
+    box_fill_col = NA,
+    box_border_col = 'black',
+    bar_border_col = 'black',
 
-  # 目盛りを描画
-  at_relative <- (at - limits[1]) / (limits[2] - limits[1])
-  x_at <- x_center[1] * (1 - at_relative) + x_center[n_color] * at_relative
-  y_top_ticks <- plot_coord_y(y + tick_len)
-  if (tick_len > 0) {
-    segments(x0 = x_at, y0 = y_top, x1 = x_at, y1 = y_top_ticks,
-             lwd = lwd_ticks)
+    # line parameters (line type)
+    bar_lty = 1,
+    box_lty = 1,
+
+    # line parameters (line width)
+    bar_lwd = 1,
+    box_lwd = 1
+
+) {
+
+  # convert arguments to coordinate scales in plot
+  cx <- par('cxy')[1]
+  cy <- par('cxy')[2]
+  bar_width  <- bar_width  * cx
+  bar_height <- bar_height * cy
+  margin <- margin * c(cy, cx, cy, cx)
+
+
+  # calculate coordinates ======================================================
+  # box coordinates
+  box_width  <- bar_width  + margin[2] + margin[4]
+  box_height <- bar_height + margin[1] + margin[3]
+  box_xleft   <- plot_coord_x(x) - box_width  * box_adj[1]
+  box_xright  <- plot_coord_x(x) + box_width  * (1 - box_adj[1])
+  box_ytop    <- plot_coord_y(y) + box_height * (1 - box_adj[2])
+  box_ybottom <- plot_coord_y(y) - box_height * box_adj[2]
+
+  # bar coordinates
+  if (horizontal) {
+
+    bar_xall <- seq(
+      box_xleft + margin[2], box_xright - margin[4], length.out = n_bar_col + 1)
+    bar_xleft   <- bar_xall[-(n_bar_col + 1)]
+    bar_xright  <- bar_xall[-1]
+    bar_ytop    <- box_ytop    - margin[3]
+    bar_ybottom <- box_ybottom + margin[1]
+
+  } else {
+
+    bar_yall <- seq(
+      box_ytop - margin[3], box_ybottom + margin[1], length.out = n_bar_col + 1)
+    bar_xleft   <- box_xleft  + margin[2]
+    bar_xright  <- box_xright - margin[4]
+    bar_ytop    <- bar_yall[-(n_bar_col + 1)]
+    bar_ybottom <- bar_yall[-1]
+
   }
 
-  # ラベルを描画
-  if (show_label) {
-    y_label <- plot_coord_y(y + tick_len + space_height_label)
-    text(x = x_at, y = y_label, labels = at,
-         cex = cex_label, adj = c(0.5, 0))
-  }
 
-  # タイトルを描画
-  if (side_title == 'left') {
-    x_title <- plot_coord_x(x - space_width_title)
-    adj_title <- c(1, 0)
-  } else if (side_title == 'right') {
-    x_title <- plot_coord_x(x + width + space_width_title)
-    adj_title <- c(0, 0)
-  }
-  text(x = x_title,
-       y = plot_coord_y(y + space_height_title),
-       labels = title, cex = cex_title, adj = adj_title)
+  # calculate graphical settings ===============================================
+  # bar color
+  bar_val <- seq(0, 1, length.out = n_bar_col)
+  bar_fill_col <- rgb(colorRamp(bar_col)(bar_val) / 255)
 
-  # パラメータを返す
-  x_df <- data.frame(left = x_left, center = x_center, right = x_right)
-  invisible(list(
-    x = x_df, y = c(y_top, y_bottom),
-    color = color_all, x_at = x_at))
+
+  # plot =======================================================================
+  old_xpd <- par('xpd')
+  par(xpd = TRUE)
+
+  # box
+  rect(box_xleft, box_ybottom, box_xright, box_ytop,
+       col = box_fill_col, border = box_border_col,
+       lty = box_lty, lwd = box_lwd)
+
+  # bar
+  rect(bar_xleft, bar_ybottom, bar_xright, bar_ytop,
+       col = bar_fill_col, border = NA)
+  rect(min(bar_xleft), min(bar_ybottom), max(bar_xright), max(bar_ytop),
+       col = NA, border = bar_border_col, lty = bar_lty, lwd = bar_lwd)
+
+  # ticks
+  # at_relative <- (at - limits[1]) / (limits[2] - limits[1])
+  # x_at <- x_center[1] * (1 - at_relative) + x_center[n_color] * at_relative
+  # y_top_ticks <- plot_coord_y(y + tick_len)
+  # if (tick_len > 0) {
+  #   segments(x0 = x_at, y0 = y_top, x1 = x_at, y1 = y_top_ticks,
+  #            lwd = lwd_ticks)
+  # }
+
+  # label
+  # if (show_label) {
+  #   y_label <- plot_coord_y(y + tick_len + space_height_label)
+  #   text(x = x_at, y = y_label, labels = at,
+  #        cex = cex_label, adj = c(0.5, 0))
+  # }
+
+  par(xpd = old_xpd)
+
+  # return =====================================================================
+  ans <- list(
+    box_xy = c(
+      xleft  = box_xleft , ybottom = box_ybottom,
+      xright = box_xright, ytop    = box_ytop))
+  invisible(ans)
 
 }
+
+# colorbar <- function(
+#     x, y, width, height, color, limits, at, n_color = 50, title = 'Value',
+#     horizontal = TRUE, lwd_bar = 1, border_color = 'black',
+#     tick_len = 0.02, lwd_ticks = 1,
+#     show_label = TRUE, cex_label = 1, space_height_label = 0.02,
+#     side_title = 'left',
+#     space_width_title = 0.03, space_height_title = 0.03, cex_title = 1) {
+#   # x <- 1.1
+#   # y <- 1.08
+#   # width <- 0.3
+#   # height <- 0.03
+#   # at <- c(1.3, 2, 3, 4)
+#   # n_color <- 50
+#
+#   # カラーバー用の色を生成
+#   val <- seq(0, 1, length.out = n_color)
+#   color_all <- rgb(colorRamp(color)(val) / 255)
+#
+#   # 対応する座標を作成
+#   x_all    <- plot_coord_x(seq(x, x + width, length.out = n_color + 1))
+#   x_left   <- x_all[-(n_color + 1)]
+#   x_right  <- x_all[-1]
+#   x_center <- (x_left + x_right) / 2
+#   y_top    <- plot_coord_y(y)
+#   y_bottom <- plot_coord_y(y - height)
+#
+#   # カラーバーを描画
+#   rect(xleft = x_left, ybottom = y_bottom, xright = x_right, ytop = y_top,
+#        col = color_all, border = NA)
+#   rect(xleft  = x_left [1]      , ybottom = y_bottom,
+#        xright = x_right[n_color], ytop    = y_top,
+#        col = NA, border = 'black', lwd = lwd_bar)
+#
+#   # 目盛りを描画
+#   at_relative <- (at - limits[1]) / (limits[2] - limits[1])
+#   x_at <- x_center[1] * (1 - at_relative) + x_center[n_color] * at_relative
+#   y_top_ticks <- plot_coord_y(y + tick_len)
+#   if (tick_len > 0) {
+#     segments(x0 = x_at, y0 = y_top, x1 = x_at, y1 = y_top_ticks,
+#              lwd = lwd_ticks)
+#   }
+#
+#   # ラベルを描画
+#   if (show_label) {
+#     y_label <- plot_coord_y(y + tick_len + space_height_label)
+#     text(x = x_at, y = y_label, labels = at,
+#          cex = cex_label, adj = c(0.5, 0))
+#   }
+#
+#   # タイトルを描画
+#   if (side_title == 'left') {
+#     x_title <- plot_coord_x(x - space_width_title)
+#     adj_title <- c(1, 0)
+#   } else if (side_title == 'right') {
+#     x_title <- plot_coord_x(x + width + space_width_title)
+#     adj_title <- c(0, 0)
+#   }
+#   text(x = x_title,
+#        y = plot_coord_y(y + space_height_title),
+#        labels = title, cex = cex_title, adj = adj_title)
+#
+#   # パラメータを返す
+#   x_df <- data.frame(left = x_left, center = x_center, right = x_right)
+#   invisible(list(
+#     x = x_df, y = c(y_top, y_bottom),
+#     color = color_all, x_at = x_at))
+#
+# }
 # plot(0, 0)
 # cb <- colorbar(
 #   x = 0.2, y = 0.6, width = 0.2, height = 0.05,

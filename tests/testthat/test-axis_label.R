@@ -7,6 +7,9 @@ test_that('basic use', {
     axis_label(side, at = at, line = 2, col = 'red', font = 3)
   }
 
+})
+test_that('string rotation', {
+
   for (srt in seq(0, 360, 10)) {
     plot(1:10, 1:10, xaxt = 'n', yaxt = 'n', main = srt)
     for (side in 1:4) {
