@@ -7,40 +7,96 @@ colorbar <- function(
     x, y,
 
     # colorbar detail
+    axis_lim,
+    axis_at,
     bar_col = cm.colors(7),
     n_bar_col = 30,
     horizontal = TRUE,
+    axis_position = if (horizontal) 'top' else 'right',
 
     # size information
     bar_width = if (horizontal) 5 else 1,
     bar_height = if (horizontal) 1 else 5,
-    margin = c(1, 1, 1, 1), # bottom, left, top, right
+    margin = NULL, # bottom, left, top, right
     box_adj = c(0.5, 0.5),
+    ticks_length = 0.2,
 
     # colors except for that inside colorbar
+    bar_border_col = 'black',
     box_fill_col = NA,
     box_border_col = 'black',
-    bar_border_col = 'black',
+    ticks_col = 'black',
 
     # line parameters (line type)
     bar_lty = 1,
     box_lty = 1,
+    ticks_lty = 1,
 
     # line parameters (line width)
     bar_lwd = 1,
-    box_lwd = 1
+    box_lwd = 1,
+    ticks_lwd = 1
 
 ) {
 
-  # convert arguments to coordinate scales in plot
-  cx <- par('cxy')[1]
-  cy <- par('cxy')[2]
-  bar_width  <- bar_width  * cx
-  bar_height <- bar_height * cy
-  margin <- margin * c(cy, cx, cy, cx)
+  # check arguments ============================================================
+  # arguments with length 1
+  arg_names <- c(
+    'n_bar_col', 'horizontal', 'axis_position', 'bar_width', 'bar_height',
+    'bar_border_col', 'box_fill_col', 'box_border_col',
+    'bar_lty', 'box_lty', 'bar_lwd', 'box_lwd')
+  for (arg_name in arg_names) {
+    arg <- get(arg_name)
+    if (length(arg) >= 2) {
+      msg <- sprintf(
+        'Multiple values were given as `%s`. Only the first value is used.',
+        arg_name)
+      warning(msg)
+    }
+    assign(arg_name, arg[1])
+  }
+
+  # axis_lim
+  stopifnot(length(axis_lim) == 2)
+  axis_lim <- as.numeric(axis_lim)
+
+  # axis_at
+  axis_at <- as.numeric(axis_at)
+
+  # axis_position
+  axis_positions <- c('none', 'top', 'bottom', 'right', 'left')
+  sel_axis_position <- pmatch(axis_position, axis_positions)
+  if (is.na(sel_axis_position)) stop('Invalid `axis_position`.')
+  axis_position <- axis_positions[sel_axis_position]
+  if (horizontal && axis_position %in% c('right', 'left')) {
+    stop('`axis_position` should be `top` or `bottom` when `horizotal = TRUE`.')
+  }
+  if (!horizontal && axis_position %in% c('top', 'bottom')) {
+    stop('`axis_position` should be `right` or `left` when `horizotal = FALSE`.')
+  }
+
+  # margin
+  margin_names <- c('bottom', 'left', 'top', 'right')
+  if (is.null(margin)) {
+    margin <- c(1, 1, 1, 1)
+    names(margin) <- margin_names
+    margin[axis_position] <- margin[axis_position] + 1
+    margin <- margin[margin_names]
+  } else {
+    names(margin) <- margin_names
+  }
+
 
 
   # calculate coordinates ======================================================
+  # convert arguments to coordinate scales in plot
+  cx <- par('cxy')[1]
+  cy <- par('cxy')[2] / par('cra')[2] * par('cra')[1]
+  bar_width  <- bar_width  * cx
+  bar_height <- bar_height * cy
+  margin <- margin * c(cy, cx, cy, cx)
+  ticks_length <- ticks_length * (if (horizontal) cy else cx)
+
   # box coordinates
   box_width  <- bar_width  + margin[2] + margin[4]
   box_height <- bar_height + margin[1] + margin[3]
@@ -50,24 +106,53 @@ colorbar <- function(
   box_ybottom <- plot_coord_y(y) - box_height * box_adj[2]
 
   # bar coordinates
+  bar_xleft   <- box_xleft   + margin[2]
+  bar_xright  <- box_xright  - margin[4]
+  bar_ytop    <- box_ytop    - margin[3]
+  bar_ybottom <- box_ybottom + margin[1]
+
   if (horizontal) {
 
-    bar_xall <- seq(
-      box_xleft + margin[2], box_xright - margin[4], length.out = n_bar_col + 1)
-    bar_xleft   <- bar_xall[-(n_bar_col + 1)]
-    bar_xright  <- bar_xall[-1]
-    bar_ytop    <- box_ytop    - margin[3]
-    bar_ybottom <- box_ybottom + margin[1]
+    barseg_xall <- seq(bar_xleft, bar_xright, length.out = n_bar_col + 1)
+    barseg_xleft   <- barseg_xall[-(n_bar_col + 1)]
+    barseg_xright  <- barseg_xall[-1]
+    barseg_ytop    <- bar_ytop
+    barseg_ybottom <- bar_ybottom
+    barseg_center  <- (barseg_xleft + barseg_xright) / 2
 
   } else {
 
-    bar_yall <- seq(
-      box_ytop - margin[3], box_ybottom + margin[1], length.out = n_bar_col + 1)
-    bar_xleft   <- box_xleft  + margin[2]
-    bar_xright  <- box_xright - margin[4]
-    bar_ytop    <- bar_yall[-(n_bar_col + 1)]
-    bar_ybottom <- bar_yall[-1]
+    barseg_yall <- seq(bar_ytop, bar_ybottom, length.out = n_bar_col + 1)
+    barseg_xleft   <- bar_xleft
+    barseg_xright  <- bar_xright
+    barseg_ytop    <- barseg_yall[-(n_bar_col + 1)]
+    barseg_ybottom <- barseg_yall[-1]
+    barseg_center  <- (barseg_ytop + barseg_ybottom) / 2
 
+  }
+
+  # axis coordinates
+  axis_at_rel <- (axis_at - axis_lim[1]) / (axis_lim[2] - axis_lim[1])
+  if (axis_position %in% c('top', 'bottom')) {
+    axis_x0 <- barseg_center[1] * (1 - axis_at_rel) + barseg_center[n_bar_col] * axis_at_rel
+    axis_x1 <- axis_x0
+    if (axis_position == 'top') {
+      axis_y0 <- bar_ytop
+      axis_y1 <- axis_y0 + ticks_length
+    } else {
+      axis_y0 <- bar_ybottom
+      axis_y1 <- axis_y0 - ticks_length
+    }
+  } else {
+    axis_y0 <- barseg_center[1] * (1 - axis_at_rel) + barseg_center[n_bar_col] * axis_at_rel
+    axis_y1 <- axis_y0
+    if (axis_position == 'right') {
+      axis_x0 <- bar_xright
+      axis_x1 <- axis_x0 + ticks_length
+    } else {
+      axis_x0 <- bar_xleft
+      axis_x1 <- axis_x0 - ticks_length
+    }
   }
 
 
@@ -87,26 +172,28 @@ colorbar <- function(
        lty = box_lty, lwd = box_lwd)
 
   # bar
-  rect(bar_xleft, bar_ybottom, bar_xright, bar_ytop,
+  rect(barseg_xleft, barseg_ybottom, barseg_xright, barseg_ytop,
        col = bar_fill_col, border = NA)
-  rect(min(bar_xleft), min(bar_ybottom), max(bar_xright), max(bar_ytop),
+  rect(bar_xleft, bar_ybottom, bar_xright, bar_ytop,
        col = NA, border = bar_border_col, lty = bar_lty, lwd = bar_lwd)
 
-  # ticks
-  # at_relative <- (at - limits[1]) / (limits[2] - limits[1])
-  # x_at <- x_center[1] * (1 - at_relative) + x_center[n_color] * at_relative
-  # y_top_ticks <- plot_coord_y(y + tick_len)
-  # if (tick_len > 0) {
-  #   segments(x0 = x_at, y0 = y_top, x1 = x_at, y1 = y_top_ticks,
-  #            lwd = lwd_ticks)
-  # }
+  # axis
+  if (axis_position != 'none') {
 
-  # label
-  # if (show_label) {
-  #   y_label <- plot_coord_y(y + tick_len + space_height_label)
-  #   text(x = x_at, y = y_label, labels = at,
-  #        cex = cex_label, adj = c(0.5, 0))
-  # }
+    # ticks
+    segments(axis_x0, axis_y0, axis_x1, axis_y1,
+             col = ticks_col, lty = ticks_lty, lwd = ticks_lwd)
+
+    # label
+    # if (show_label) {
+    #   y_label <- plot_coord_y(y + tick_len + space_height_label)
+    #   text(x = x_at, y = y_label, labels = at,
+    #        cex = cex_label, adj = c(0.5, 0))
+    # }
+
+
+
+  }
 
   par(xpd = old_xpd)
 
