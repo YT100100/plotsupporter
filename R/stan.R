@@ -1,10 +1,11 @@
 #' @export
 
-stan_traces <- function(stan_res, par_names, inc_warmup = FALSE) {
+stan_traces <- function(object, pars = NULL, ...) {
 
-  for (par_name in par_names) {
-    g <- rstan::stan_trace(stan_res, pars = par_name, inc_warmup = inc_warmup) +
-      ggplot2::labs(title = par_name)
+  if (is.null(pars)) pars <- names(object)
+  for (par_i in pars) {
+    g <- rstan::stan_trace(object, pars = par_i, ...) +
+      ggplot2::labs(title = par_i)
     print(g)
   }
 
