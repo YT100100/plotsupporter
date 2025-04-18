@@ -1,7 +1,7 @@
 Package: plotsupporter
 Type: Package
 Title: A package of convenient functions supporting base plot
-Version: 0.0.0.9000
+Version: 0.0.1
 Author@R: person("TODA", "Yusuke", email = "yusuke0320.research@gmail.com",
     role = c("aut", 'cre))
 Description: !!!!!!!!!! TO BE WRITTEN !!!!!!!!!!

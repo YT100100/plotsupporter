@@ -306,7 +306,7 @@ colorbar <- function(
 heatmap_custom <- function(
     x, row_group = NULL, col_group = NULL, scale = 'none',
     color = RColorBrewer::brewer.pal(11, 'RdBu'),
-    color_na = 'gray95',
+    color_na = 'gray95', color_border = 'black', lwd_border = 1,
     limits = NULL,
     cell_height = 1, cell_width = 1, sep_height = 0, sep_width = 0,
     groupsep_height = 0.7, groupsep_width = 0.7,
@@ -327,6 +327,9 @@ heatmap_custom <- function(
   # side_collab, side_rowgrouplab, side_colgrouplab未実装
   # scaled未実装
   # カラーバー未実装
+
+  if (is.null(row_group)) row_group <- rep('', nrow(x))
+  if (is.null(col_group)) col_group <- rep('', ncol(x))
 
   # sort x
   orig_row <- rownames(x)
@@ -367,7 +370,7 @@ heatmap_custom <- function(
   plot(NULL, xlim = xlim, ylim = ylim, type = 'n',
        xaxt = 'n', yaxt = 'n', ann = FALSE)
   rect(xleft, ybottom, xright, ytop,
-       col = color_cell)
+       col = color_cell, border = color_border, lwd = lwd_border)
 
   # determine coordinates of row and column labels
   rowlab_y <- if (side_collab == 'b') {
