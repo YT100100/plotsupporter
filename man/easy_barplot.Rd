@@ -10,11 +10,18 @@ easy_barplot(
   x2 = NULL,
   test_method = NULL,
   signif_label_at_top = TRUE,
-  signif_label_size = 2,
-  signif_label_space = 0.02,
+  signif_label_cex = 1,
+  signif_label_space = 0.03,
+  bar_space_x1 = NA,
+  bar_space_x2 = NA,
+  bar_col = NULL,
+  bar_border = "black",
+  bar_lwd = 1,
   show_errorbar = TRUE,
-  errorbar_shift = -0.2,
-  errorbar_length = 0.1,
+  errorbar_shift = NA,
+  errorbar_length = 0.05,
+  errorbar_col = "black",
+  errorbar_lwd = 1,
   show_point = TRUE,
   point_shift = NA,
   point_color = "gray20",
@@ -22,9 +29,23 @@ easy_barplot(
   point_cex = 1,
   point_pch = 1,
   point_lwd = 1,
-  axislabel_x2_line = 3,
+  axis_label_x2_line = 2,
   y_space = 0.03,
-  main = ""
+  main = "",
+  xlab = "",
+  ylab = "",
+  main_line = NA,
+  main_cex = 1.3,
+  main_font = 2,
+  main_col = "black",
+  xlab_line = NA,
+  xlab_cex = 1,
+  xlab_font = 1,
+  xlab_col = "black",
+  ylab_line = NA,
+  ylab_cex = 1,
+  ylab_font = 1,
+  ylab_col = "black"
 )
 }
 \arguments{
@@ -42,37 +63,93 @@ If \code{NULL}, no test will be applied.
 If \code{x2} is provided, the tests will be applied for
 each groups of \code{x2} independently.}
 
-\item{signif_label_at_top}{Logical. Should the labels shown at the top of the bars?}
-
-\item{signif_label_size}{Label size.}
+\item{signif_label_at_top}{Logical.
+Should the labels shown at the top of the bars?}
 
 \item{signif_label_space}{Space between labels and any nearest object
 (either of bars, error bars, or points).}
+
+\item{bar_space_x1}{Space width between bars.
+Default value is 0.2 if \code{x2} is \code{NULL} and otherwise 0.}
+
+\item{bar_space_x2}{Space width between bar groups. Default value is 1.}
+
+\item{bar_col}{Color inside bars.}
+
+\item{bar_border}{Color of bar borders.}
+
+\item{bar_lwd}{Line width of bar borders.}
 
 \item{show_errorbar}{Logical. Should error bars be shown?}
 
 \item{errorbar_shift}{How much x coordinates of the error bars
 should be shifted from the center of the bars.
-It will be set at \code{-0.2} if \code{show_point} is \code{TRUE}, otherwise \code{0}.}
+It will be set at \code{-0.2} if \code{show_point} is \code{TRUE},
+otherwise \code{0}.}
 
 \item{errorbar_length}{Length of horizontal lines of error bars.}
+
+\item{errorbar_col}{Color of error bars.}
+
+\item{errorbar_lwd}{Line width of error bars.}
 
 \item{show_point}{Logical. Should the data points be shown?}
 
 \item{point_shift}{How much x coordinates of the points
 should be shifted from the center of the bars.
-It will be set at \code{0.2} if \code{show_errorbar} is \code{TRUE}, otherwise \code{0}.}
+It will be set at \code{0.2} if \code{show_errorbar} is \code{TRUE},
+otherwise \code{0}.}
 
-\item{point_color}{Color of points.}
+\item{point_color}{Point color. If a vector is given, color}
 
-\item{point_bg}{Background color of points (applied if \code{point_pch} is in 21-25).}
+\item{point_bg}{Background color of points
+(applied if \code{point_pch} is in 21-25).}
 
 \item{point_cex}{Point size.}
 
 \item{point_pch}{Point shape.}
 
-\item{point_lwd}{Line width of points.}
+\item{point_lwd}{Point line width.}
+
+\item{axis_label_x2_line}{Distance between panel border and x-axis label of \code{x2}.}
+
+\item{y_space}{Space between the highest/lowest object and panel border.}
+
+\item{main}{Title.}
+
+\item{xlab}{Title of x-axis.}
+
+\item{ylab}{Title of y-axis.}
+
+\item{main_line}{Distance between panel border and title.}
+
+\item{main_cex}{Title size.}
+
+\item{main_font}{Title font.}
+
+\item{main_col}{Title color.}
+
+\item{xlab_line}{Distance between panel border and title of x-axis.}
+
+\item{xlab_cex}{Title size of x-axis.}
+
+\item{xlab_font}{Title font of x-axis.}
+
+\item{xlab_col}{Title size of x-axis.}
+
+\item{ylab_line}{Distance between panel border and title of y-axis.}
+
+\item{ylab_cex}{Title size of y-axis.}
+
+\item{ylab_font}{Title font of y-axis.}
+
+\item{ylab_col}{Title size of y-axis.}
+
+\item{signif_label_size}{Label size.}
 }
 \description{
 This function is a wrapper of \code{\link[graphics]{barplot}} function.
+}
+\seealso{
+\code{\link[graphics]{barplot}}
 }

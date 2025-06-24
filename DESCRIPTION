@@ -1,13 +1,11 @@
 Package: plotsupporter
 Type: Package
 Title: A package of convenient functions supporting base plot
-Version: 0.0.2
+Version: 0.0.3
 Author@R: person("TODA", "Yusuke", email = "yusuke0320.research@gmail.com",
     role = c("aut", 'cre))
-Description: !!!!!!!!!! TO BE WRITTEN !!!!!!!!!!
-    More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Description: Convenient functions for visualization were made for myself.
+License: This package is private.
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
