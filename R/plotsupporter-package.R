@@ -3,6 +3,7 @@
 
 ## usethis namespace: start
 #' @importFrom ggplot2 labs
+#' @importFrom multcomp glht
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom rstan stan_trace
 ## usethis namespace: end
