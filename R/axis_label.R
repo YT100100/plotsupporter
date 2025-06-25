@@ -1,3 +1,25 @@
+determine_adj_with_srt <- function(srt, side) {
+
+  sin_srt <- sin(srt / 180 * pi)
+  cos_srt <- cos(srt / 180 * pi)
+  th <- sin(pi / 8)
+  if (side == 1) {
+    hadj <- if (sin_srt < -th) 0 else if (sin_srt < th) 0.5 else 1
+    padj <- if (cos_srt < -th) 0 else if (cos_srt < th) 0.5 else 1
+  } else if (side == 2) {
+    hadj <- if (cos_srt < -th) 0 else if (cos_srt < th) 0.5 else 1
+    padj <- if (sin_srt < -th) 1 else if (sin_srt < th) 0.5 else 0
+  } else if (side == 3) {
+    hadj <- if (sin_srt < -th) 1 else if (sin_srt < th) 0.5 else 0
+    padj <- if (cos_srt < -th) 1 else if (cos_srt < th) 0.5 else 0
+  } else if (side == 4) {
+    hadj <- if (cos_srt < -th) 1 else if (cos_srt < th) 0.5 else 0
+    padj <- if (sin_srt < -th) 0 else if (sin_srt < th) 0.5 else 1
+  }
+  c(hadj, padj)
+
+}
+
 #' Add axis labels with rotation
 #'
 #' @param side An integer specifying which side of the plot
@@ -106,32 +128,24 @@ axis_label <- function(
   }
 
   # label position adjustment
-  if (type == 'short') {
-    hadj <- padj <- 0.5
-  } else {
-    sin_srt <- sin(srt / 180 * pi)
-    cos_srt <- cos(srt / 180 * pi)
-    th <- sin(pi / 8)
-    if (side == 1) {
-      hadj <- if (sin_srt < -th) 0 else if (sin_srt < th) 0.5 else 1
-      padj <- if (cos_srt < -th) 0 else if (cos_srt < th) 0.5 else 1
-    } else if (side == 2) {
-      hadj <- if (cos_srt < -th) 0 else if (cos_srt < th) 0.5 else 1
-      padj <- if (sin_srt < -th) 1 else if (sin_srt < th) 0.5 else 0
-    } else if (side == 3) {
-      hadj <- if (sin_srt < -th) 1 else if (sin_srt < th) 0.5 else 0
-      padj <- if (cos_srt < -th) 1 else if (cos_srt < th) 0.5 else 0
-    } else if (side == 4) {
-      hadj <- if (cos_srt < -th) 1 else if (cos_srt < th) 0.5 else 0
-      padj <- if (sin_srt < -th) 0 else if (sin_srt < th) 0.5 else 1
+  adj_auto <- determine_adj_with_srt(srt, side)
+  if (is.na(hadj) && is.na(padj)) {
+    if (type == 'short') {
+      adj <- c(0.5, 0.5)
+    } else {
+      adj <- adj_auto
     }
+  } else  {
+    if (is.na(hadj)) hadj <- adj_auto[1]
+    if (is.na(padj)) padj <- adj_auto[2]
+    adj <- c(hadj, padj)
   }
 
   # draw axis label ============================================================
   old_xpd <- par('xpd')
   par(xpd = TRUE)
   text(x = x, y = y, labels = labels, srt = srt, font = font, col = col,
-       adj = c(hadj, padj), ...)
+       adj = adj, ...)
   par(xpd = old_xpd)
 
 }

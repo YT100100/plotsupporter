@@ -28,9 +28,10 @@ test_that('x, y, and horizontal', {
 test_that('axis_at', {
 
   plot(0, 0)
-  for (i in seq(2, 8, 2)) {
-    colorbar(i / 10, 0.5, axis_lim = c(-2, 2),
-             axis_at = seq(-2, 2, length.out = i))
+  for (i in seq(1, 9, length.out = 4)) {
+    at <- seq(-2, 2, length.out = i)
+    colorbar(0.5, i / 10, bar_width = 10,
+             axis_lim = c(-2, 2), axis_at = at, axis_label = round(at, 1))
   }
 
 })
@@ -45,6 +46,11 @@ test_that('axis_position', {
            horizontal = FALSE, axis_position = 'left', box_adj = c(0, 0.5))
   colorbar(0.7, 0.5, axis_lim = c(-2, 2), axis_at = -2:2,
            horizontal = FALSE, axis_position = 'right', box_adj = c(1, 0.5))
+
+})
+test_that('axislab', {
+
+  plot(0, 0)
 
 })
 

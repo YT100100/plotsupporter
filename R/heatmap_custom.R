@@ -13,6 +13,7 @@ colorbar <- function(
     n_bar_col = 30,
     horizontal = TRUE,
     axis_position = if (horizontal) 'top' else 'right',
+    axis_label = NULL,
 
     # size information
     bar_width = if (horizontal) 5 else 1,
@@ -35,16 +36,26 @@ colorbar <- function(
     # line parameters (line width)
     bar_lwd = 1,
     box_lwd = 1,
-    ticks_lwd = 1
+    ticks_lwd = 1,
+
+    # text parameters for axis labels
+    axislab_line = 0.5,
+    axislab_srt = NA,
+    axislab_adj = NULL,
+    axislab_cex = 1,
+    axislab_col = 'black',
+    axislab_font = 1
 
 ) {
 
   # check arguments ============================================================
   # arguments with length 1
   arg_names <- c(
-    'n_bar_col', 'horizontal', 'axis_position', 'bar_width', 'bar_height',
+    'n_bar_col', 'horizontal', 'axis_position',
+    'bar_width', 'bar_height',
     'bar_border_col', 'box_fill_col', 'box_border_col',
-    'bar_lty', 'box_lty', 'bar_lwd', 'box_lwd')
+    'bar_lty', 'box_lty', 'bar_lwd', 'box_lwd',
+    'axislab_srt', 'axislab_cex', 'axislab_col', 'axislab_font')
   for (arg_name in arg_names) {
     arg <- get(arg_name)
     if (length(arg) >= 2) {
@@ -75,6 +86,15 @@ colorbar <- function(
     stop('`axis_position` should be `right` or `left` when `horizotal = FALSE`.')
   }
 
+  # axis_label
+  if (is.null(axis_label)) axis_label <- axis_at
+  is_valid_axlab <-
+    length(axis_label) == length(axis_at) || identical(axis_label, FALSE)
+  if (!is_valid_axlab) {
+    stop('Invalid `axis_label`.')
+  }
+  axis_label <- as.character(axis_label)
+
   # margin
   margin_names <- c('bottom', 'left', 'top', 'right')
   if (is.null(margin)) {
@@ -86,6 +106,18 @@ colorbar <- function(
     names(margin) <- margin_names
   }
 
+  # axislab_srt, axislab_adj
+  if (is.na(axislab_srt)) {
+    axislab_srt <- if (axis_position %in% c('top', 'bottom')) 0 else 90
+  }
+  if (!length(axislab_adj) %in% c(0, 2)) {
+    stop('Invalid `axislab_adj`.')
+  }
+  if (is.null(axislab_adj) && axis_position != 'none') {
+    side <- which(c('bottom', 'left', 'top', 'right') == axis_position)
+    axislab_adj <- determine_adj_with_srt(axislab_srt, side)
+  }
+  axislab_adj <- as.numeric(axislab_adj)
 
 
   # calculate coordinates ======================================================
@@ -155,6 +187,25 @@ colorbar <- function(
     }
   }
 
+  # axis label coordinates
+  if (axis_position %in% c('top', 'bottom')) {
+    axislab_x <- axis_x0
+    axislab_y <- axis_y1
+    if (axis_position == 'top') {
+      axislab_y <- axislab_y + cy * axislab_line
+    } else {
+      axislab_y <- axislab_y - cy * axislab_line
+    }
+  } else {
+    axislab_x <- axis_x1
+    axislab_y <- axis_y0
+    if (axis_position == 'right') {
+      axislab_x <- axislab_x + cx * axislab_line
+    } else {
+      axislab_x <- axislab_x - cx * axislab_line
+    }
+  }
+
 
   # calculate graphical settings ===============================================
   # bar color
@@ -185,13 +236,12 @@ colorbar <- function(
              col = ticks_col, lty = ticks_lty, lwd = ticks_lwd)
 
     # label
-    # if (show_label) {
-    #   y_label <- plot_coord_y(y + tick_len + space_height_label)
-    #   text(x = x_at, y = y_label, labels = at,
-    #        cex = cex_label, adj = c(0.5, 0))
-    # }
+    if (!identical(axis_label, FALSE)) {
+      text(x = axislab_x, y = axislab_y, labels = axis_label,
+           adj = axislab_adj, cex = axislab_cex, col = axislab_col,
+           font = axislab_font, srt = axislab_srt)
 
-
+    }
 
   }
 
