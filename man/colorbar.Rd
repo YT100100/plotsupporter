@@ -13,6 +13,7 @@ colorbar(
   n_bar_col = 30,
   horizontal = TRUE,
   axis_position = if (horizontal) "top" else "right",
+  axis_label = NULL,
   bar_width = if (horizontal) 5 else 1,
   bar_height = if (horizontal) 1 else 5,
   margin = NULL,
@@ -27,7 +28,13 @@ colorbar(
   ticks_lty = 1,
   bar_lwd = 1,
   box_lwd = 1,
-  ticks_lwd = 1
+  ticks_lwd = 1,
+  axislab_line = 0.5,
+  axislab_srt = NA,
+  axislab_adj = NULL,
+  axislab_cex = 1,
+  axislab_col = "black",
+  axislab_font = 1
 )
 }
 \description{

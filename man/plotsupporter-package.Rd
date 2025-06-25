@@ -6,6 +6,6 @@
 \alias{plotsupporter-package}
 \title{plotsupporter: A package of convenient functions supporting base plot}
 \description{
-!!!!!!!!!! TO BE WRITTEN !!!!!!!!!! More about what it does (maybe more than one line) Use four spaces when indenting paragraphs within the Description.
+Convenient functions for visualization were made for myself.
 }
 \keyword{internal}
