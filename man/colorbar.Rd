@@ -7,20 +7,27 @@
 colorbar(
   x,
   y,
+  axis_lim,
+  axis_at,
   bar_col = cm.colors(7),
   n_bar_col = 30,
   horizontal = TRUE,
+  axis_position = if (horizontal) "top" else "right",
   bar_width = if (horizontal) 5 else 1,
   bar_height = if (horizontal) 1 else 5,
-  margin = c(1, 1, 1, 1),
+  margin = NULL,
   box_adj = c(0.5, 0.5),
+  ticks_length = 0.2,
+  bar_border_col = "black",
   box_fill_col = NA,
   box_border_col = "black",
-  bar_border_col = "black",
+  ticks_col = "black",
   bar_lty = 1,
   box_lty = 1,
+  ticks_lty = 1,
   bar_lwd = 1,
-  box_lwd = 1
+  box_lwd = 1,
+  ticks_lwd = 1
 )
 }
 \description{

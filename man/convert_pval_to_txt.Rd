@@ -6,6 +6,14 @@
 \usage{
 convert_pval_to_txt(p)
 }
+\arguments{
+\item{p}{A numeric vector of p-values.}
+}
+\value{
+Characters either \code{"n.s."}, \code{"*"}, \code{"**"}, or \code{"***"},
+    if \eqn{p > 0.05}, \eqn{p <= 0.05}, \eqn{p <= 0.01}, or \eqn{p <= 0.001},
+    respectively.
+}
 \description{
 Convert p-value to significance mark
 }

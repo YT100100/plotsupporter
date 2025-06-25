@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Version: 1.0
 
 RestoreWorkspace: Default
@@ -18,3 +19,26 @@ StripTrailingWhitespace: Yes
 BuildType: Package
 PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source
+=======
+Version: 1.0
+ProjectId: 491dc0d8-41f1-43a5-8267-9326fd83a0be
+
+RestoreWorkspace: Default
+SaveWorkspace: Default
+AlwaysSaveHistory: Default
+
+EnableCodeIndexing: Yes
+UseSpacesForTab: Yes
+NumSpacesForTab: 2
+Encoding: UTF-8
+
+RnwWeave: Sweave
+LaTeX: pdfLaTeX
+
+AutoAppendNewline: Yes
+StripTrailingWhitespace: Yes
+
+BuildType: Package
+PackageUseDevtools: Yes
+PackageInstallArgs: --no-multiarch --with-keep.source
+>>>>>>> d3bce7bd0ba9ae83024f18d55f4aac1e7a5795ce

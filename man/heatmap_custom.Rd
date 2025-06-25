@@ -11,6 +11,8 @@ heatmap_custom(
   scale = "none",
   color = RColorBrewer::brewer.pal(11, "RdBu"),
   color_na = "gray95",
+  color_border = "black",
+  lwd_border = 1,
   limits = NULL,
   cell_height = 1,
   cell_width = 1,
