@@ -24,6 +24,31 @@ create_label <- function(aov_res, test_method) {
 
 }
 
+extend_ylim <- function(ylim, y, panel_space_prop) {
+
+  ylim_wo_space <- ylim + c(1, -1) * diff(ylim) * panel_space_prop
+  y_min <- min(y, na.rm = TRUE)
+  y_max <- max(y, na.rm = TRUE)
+
+  if (y_min < ylim_wo_space[1] && y_max > ylim_wo_space[2]) {
+
+    ylim[1] <- y_min - (y_max - y_min) * panel_space_prop
+    ylim[2] <- y_max + (y_max - y_min) * panel_space_prop
+
+  } else if (y_min < ylim_wo_space[1]) {
+
+    ylim[1] <- y_min - (ylim[2] - y_min) * panel_space_prop
+
+  } else if (y_max > ylim_wo_space[2]) {
+
+    ylim[2] <- y_max + (y_max - ylim[1]) * panel_space_prop
+
+  }
+  ylim
+
+}
+
+
 #' Easy making of barplot
 #'
 #' This function is a wrapper of \code{\link[graphics]{barplot}} function.
@@ -44,6 +69,16 @@ create_label <- function(aov_res, test_method) {
 #' @param signif_label_size Label size.
 #' @param signif_label_space Space between labels and any nearest object
 #'   (either of bars, error bars, or points).
+#' @param signif_label_adj Adjustment of the labels.
+#'   A numeric vector of length two of which elements in \eqn{[0, 1]}
+#'   should be given.
+#'   The label position is adjusted to left if the first element is 0
+#'   and right if 1.
+#'   The label position is adjusted to bottom if the second element is 0
+#'   and top if 1.
+#' @param signif_label_col Label color.
+#' @param signif_label_font Label font.
+#' @param signif_label_srt Label rotation angle.
 #'
 #' @param bar_space_x1 Space width between bars.
 #'   Default value is 0.2 if \code{x2} is \code{NULL} and otherwise 0.
@@ -73,10 +108,45 @@ create_label <- function(aov_res, test_method) {
 #' @param point_pch Point shape.
 #' @param point_lwd Point line width.
 #'
+#'
+#' @param show_axis_label Logical vector with three elements
+#'   indicating whether the \code{x1}, \code{x2}, and \code{y} axis labels
+#'   should be written.
+#' @param axis_label_x1 Axis labels for \code{x1}.
+#'   Its length must be the same as the number of levels of \code{x1}.
+#'   If \code{NULL}, levels of \code{x1} is given.
+#' @param axis_label_x1 Axis labels for \code{x2}.
+#'   Its length must be the same as the number of levels of \code{x2}.
+#'   If \code{NULL}, levels of \code{x2} is given.
+#' @param axis_label_line Numeric vector with three elements
+#'   indicating the distance between axis labels and panel
+#'   for \code{x1}, \code{x2}, and \code{y}.
+#' @param axis_label_srt Numeric vector with three elements
+#'   indicating the angle of axis labels
+#'   for \code{x1}, \code{x2}, and \code{y}.
+#' @param axis_label_font Numeric vector with three elements
+#'   indicating the font of axis labels
+#'   for \code{x1}, \code{x2}, and \code{y}.
+#' @param axis_label_col Numeric vector with three elements
+#'   indicating color of axis labels
+#'   for \code{x1}, \code{x2}, and \code{y}.
+#' @param axis_label_cex Numeric vector with three elements
+#'   indicating the size of axis labels
+#'   for \code{x1}, \code{x2}, and \code{y}.
+#'
+#' @param axis_tick_x_at If \code{'x1'} or \code{'x2},
+#'   tick marks of x-axis will be drawn
+#'   at the place of axis labels of \code{x1} or \code{x2}, respectively.
+#'   Otherwise, the tick marks will not be drawn.
+#' @param axis_tick_lwd Line widths of the tick marks in x- and y- axes.
+#' @param axis_tick_length Lengths of the tick marks in x- and y- axes.
+#'   Negative values indicate that the tick marks will be drawn toward
+#'   outside of the panel. If positive, it will be toward inside of the panel.
+#'
 #' @param axis_label_x2_line
 #'   Distance between panel border and x-axis label of \code{x2}.
 #'
-#' @param y_space Space between the highest/lowest object and panel border.
+#' @param panel_space_prop Space between the highest/lowest object and panel border.
 #'
 #' @param main Title.
 #' @param xlab Title of x-axis.
@@ -105,14 +175,16 @@ easy_barplot <- function(
     signif_label_at_top = TRUE,
     signif_label_cex = 1,
     signif_label_space = 0.03,
-    # 拡充可能
+    signif_label_adj = c(0.5, 0.5),
+    signif_label_col = 'black',
+    signif_label_font = 1,
+    signif_label_srt = 0,
 
     bar_space_x1 = NA,
     bar_space_x2 = NA,
     bar_col = NULL,
     bar_border = 'black',
     bar_lwd = 1,
-    # 拡充可能
 
     show_errorbar = TRUE,
     errorbar_shift = NA,
@@ -128,12 +200,23 @@ easy_barplot <- function(
     point_pch = 1,
     point_lwd = 1,
 
-    axis_label_x2_line = 2,
-    # 拡充可能
+    show_axis_label = c(TRUE, TRUE, TRUE),
+    axis_label_x1 = NULL,
+    axis_label_x2 = NULL,
+    axis_label_line = c(1, 2, 1),
+    axis_label_srt = c(90, 0, 90),
+    axis_label_font = c(1, 1, 1),
+    axis_label_col = c('black', 'black', 'black'),
+    axis_label_cex = c(1, 1, 1),
+
+    axis_tick_x_at = 'x1',
+    axis_tick_lwd = c(1, 1),
+    axis_tick_length = c(-0.5, -0.5),
+
 
     # legend関連拡充可能
 
-    y_space = 0.03,
+    panel_space_prop = 0.03,
 
     main = '',
     xlab = '',
@@ -219,10 +302,10 @@ easy_barplot <- function(
   ylim[1] <- pmin(ylim[1], 0)
   ylim[2] <- pmax(ylim[2], 0)
   if (show_errorbar) {
-    ylim <- range(c(ylim, errorbar_ymin, errorbar_ymax), na.rm = TRUE)
+    ylim <- extend_ylim(ylim, c(errorbar_ymin, errorbar_ymax), panel_space_prop)
   }
   if (show_point) {
-    ylim <- range(c(ylim, y), na.rm = TRUE)
+    ylim <- extend_ylim(ylim, y, panel_space_prop)
   }
 
   # 有意ラベルのy座標
@@ -244,7 +327,7 @@ easy_barplot <- function(
 
     point_ymin <- tapply(y, list(x1, x2), min, na.rm = TRUE)
     if (show_errorbar & show_point) {
-      signif_label_y <- pmax(errorbar_ymin, point_ymin)
+      signif_label_y <- pmin(errorbar_ymin, point_ymin)
     } else if (show_errorbar) {
       signif_label_y <- errorbar_ymin
     } else if (show_point) {
@@ -257,16 +340,16 @@ easy_barplot <- function(
   }
 
   # y軸の範囲を更新
-  ylim <- range(c(ylim, signif_label_y), na.rm = TRUE)
-  if (ylim[1] != 0) ylim[1] <- ylim[1] - diff(ylim) * y_space
-  if (ylim[2] != 0) ylim[2] <- ylim[2] + diff(ylim) * y_space
+  if (!is.null(test_method)) {
+    ylim <- extend_ylim(ylim, signif_label_y, panel_space_prop)
+  }
 
 
   # 作図 =======================================================================
   # 棒グラフ
   op <- par(lwd = bar_lwd)
   bar_pos <- barplot(
-    mat_mean, beside = TRUE, ylim = ylim, xaxt = 'n',
+    mat_mean, beside = TRUE, ylim = ylim, xaxt = 'n', yaxt = 'n',
     space = c(bar_space_x1, bar_space_x2),
     col = bar_col, border = bar_border)
   par(op)
@@ -274,8 +357,10 @@ easy_barplot <- function(
   colnames(bar_pos) <- levels(x2)
 
   # ラベル
-  text(x = bar_pos, y = signif_label_y,
-       labels = label, cex = signif_label_cex)
+  text(x = bar_pos, y = signif_label_y, labels = label,
+       cex = signif_label_cex, adj = signif_label_adj,
+       col = signif_label_col, font = signif_label_font,
+       srt = signif_label_srt)
 
   # エラーバー
   if (show_errorbar) {
@@ -292,12 +377,42 @@ easy_barplot <- function(
            lwd = point_lwd)
   }
 
-  # 軸
-  axis(1, at = bar_pos, labels = NA)
-  axis_label(1, at = bar_pos, labels = rep(rownames(bar_pos), ncol(bar_pos)),
-             srt = 90)
-  axis_label(1, at = colMeans(bar_pos), labels = levels(x2),
-             line = axis_label_x2_line)
+  # x軸目盛
+  axis_x_at <- if (identical(axis_tick_x_at, 'x1')) {
+    bar_pos
+  } else if (identical(axis_tick_x_at, 'x2')) {
+    colMeans(bar_pos)
+  }
+  axis(1, at = axis_x_at, labels = NA,
+       lwd.ticks = axis_tick_lwd[1], tcl = axis_tick_length[1])
+
+  # y軸目盛
+  axis_y_at <- axis(
+    2, labels = NA,
+    lwd.ticks = axis_tick_lwd[2], tcl = axis_tick_length[2])
+
+  # 軸ラベル
+  if (show_axis_label[1]) {
+    axis_label(
+      1, at = bar_pos, labels = rep(rownames(bar_pos), ncol(bar_pos)),
+      line = axis_label_line[1], srt = axis_label_srt[1],
+      font = axis_label_font[1], col = axis_label_col[1],
+      cex  = axis_label_cex [1])
+  }
+  if (show_axis_label[2]) {
+    axis_label(
+      1, at = colMeans(bar_pos), labels = levels(x2),
+      line = axis_label_line[2], srt = axis_label_srt[2],
+      font = axis_label_font[2], col = axis_label_col[2],
+      cex  = axis_label_cex [2])
+  }
+  if (show_axis_label[3]) {
+    axis_label(
+      2, at = axis_y_at,
+      line = axis_label_line[3], srt = axis_label_srt[3],
+      font = axis_label_font[3], col = axis_label_col[3],
+      cex  = axis_label_cex [3])
+  }
 
   # タイトル・軸タイトル
   title(main = main, line = main_line,

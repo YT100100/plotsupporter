@@ -26,9 +26,6 @@ test_that('standard', {
   easy_barplot(x1 = dat$x1, x2 = dat$x2, y = dat$y, show_errorbar = FALSE, test_method = 'tukey')
   easy_barplot(x1 = dat$x1, x2 = dat$x2, y = dat$y, show_errorbar = FALSE, test_method = 'dunnett')
 
-  # タイトルなど
-
-
 })
 test_that('bar options', {
 
@@ -46,7 +43,37 @@ test_that('bar options', {
     bar_border = 'red', bar_lwd = 2)
 
 })
-test_that('error bars', {
+test_that('label options', {
+
+  # debugonce(easy_barplot)
+
+  easy_barplot(
+    x1 = dat$x1, y = dat$y, test_method = 'tukey',
+    signif_label_cex = 3,
+    signif_label_space = 0.2,
+    signif_label_adj = c(1, 1),
+    signif_label_col = 'red',
+    signif_label_font = 2,
+    signif_label_srt = 20)
+
+  easy_barplot(
+    x1 = dat$x1, x2 = dat$x2, y = dat$y, test_method = 'tukey',
+    signif_label_cex = 0.8,
+    signif_label_space = 0.2,
+    signif_label_adj = c(1, 1),
+    signif_label_col = 'red',
+    signif_label_font = 2,
+    signif_label_srt = 20)
+
+  easy_barplot(
+    x1 = dat$x1, x2 = dat$x2, y = dat$y, test_method = 'tukey',
+    signif_label_at_top = FALSE)
+  easy_barplot(
+    x1 = dat$x1, x2 = dat$x2, y = -dat$y, test_method = 'tukey',
+    signif_label_at_top = FALSE)
+
+})
+test_that('error bar options', {
 
   # debugonce(easy_barplot)
 
@@ -59,7 +86,24 @@ test_that('error bars', {
     errorbar_length = 1, errorbar_col = 'orange', errorbar_lwd = 3)
 
 })
-test_that('axis labels', {
+test_that('axis label options', {
+
+
+  # show_axis_label = c(TRUE, TRUE, TRUE),
+  # axis_label_x1 = NULL,
+  # axis_label_x2 = NULL,
+  # axis_label_line = c(1, 2, 1),
+  # axis_label_srt = c(90, 0, 90),
+  # axis_label_font = c(1, 1, 1),
+  # axis_label_col = c('black', 'black', 'black'),
+  # axis_label_cex = c(1, 1, 1),
+  #
+  # axis_tick_x_at = 'x1',
+  # axis_tick_lwd = c(1, 1),
+  # axis_tick_length = c(-0.5, -0.5),
+
+})
+test_that('title options', {
 
   easy_barplot(
     x1 = dat$x1, x2 = dat$x2, y = dat$y,
