@@ -70,6 +70,8 @@ extend_ylim <- function(ylim, y, panel_space_prop) {
 #'   If \code{NULL}, no test will be applied.
 #'   If \code{x2} is provided, the tests will be applied for
 #'   each groups of \code{x2} independently.
+#' @param show_ns Logical. Should the text "n.s." be shown
+#'   if the difference was not significantly different from 0?
 #' @param signif_label_at_top Logical.
 #'   Should the labels shown at the top of the bars?
 #' @param signif_label_size Label size.
@@ -120,7 +122,7 @@ extend_ylim <- function(ylim, y, panel_space_prop) {
 #' @param axis_label_x1 Axis labels for \code{x1}.
 #'   Its length must be the same as the number of levels of \code{x1}.
 #'   If \code{NULL}, levels of \code{x1} is given.
-#' @param axis_label_x1 Axis labels for \code{x2}.
+#' @param axis_label_x2 Axis labels for \code{x2}.
 #'   Its length must be the same as the number of levels of \code{x2}.
 #'   If \code{NULL}, levels of \code{x2} is given.
 #' @param axis_label_line Numeric vector with three elements
@@ -139,7 +141,7 @@ extend_ylim <- function(ylim, y, panel_space_prop) {
 #'   indicating the size of axis labels
 #'   for \code{x1}, \code{x2}, and \code{y}.
 #'
-#' @param axis_tick_x_at If \code{'x1'} or \code{'x2},
+#' @param axis_tick_x_at If \code{'x1'} or \code{'x2'},
 #'   tick marks of x-axis will be drawn
 #'   at the place of axis labels of \code{x1} or \code{x2}, respectively.
 #'   Otherwise, the tick marks will not be drawn.
@@ -184,6 +186,7 @@ easy_barplot <- function(
     # control_level = NULL,
     # assume_normality = TRUE,
 
+    show_ns = TRUE,
     signif_label_at_top = TRUE,
     signif_label_cex = 1,
     signif_label_space = 0.03,
@@ -331,6 +334,10 @@ easy_barplot <- function(
     x1x2_levs[sel_i, 'label'][matcher_i] <- label_i
 
   }
+
+  # "n.s."を表示しない場合は消す
+  x1x2_levs$label <- gsub('^n\\.s\\.$', '', x1x2_levs$label)
+
 
   # 作図の詳細を決定 ===========================================================
   # エラーバーのy座標
