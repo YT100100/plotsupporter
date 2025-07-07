@@ -27,6 +27,23 @@ test_that('standard', {
   easy_barplot(x1 = dat$x1, x2 = dat$x2, y = dat$y, show_errorbar = FALSE, test_method = 'dunnett')
 
 })
+test_that('no data in a group', {
+
+  # debugonce(easy_barplot)
+
+  dat1 <- subset(dat, x1 != 'a' | x2 != 'A')
+
+  easy_barplot(x1 = dat1$x1, y = dat1$y)
+  easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y)
+  easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y, remove_level_without_data = TRUE)
+
+  easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y, test_method = 'tukey')
+  easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y, test_method = 'tukey', remove_level_without_data = TRUE)
+
+  easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y, test_method = 'dunnett')
+  easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y, test_method = 'dunnett', remove_level_without_data = TRUE)
+
+})
 test_that('bar options', {
 
   # debugonce(easy_barplot)
