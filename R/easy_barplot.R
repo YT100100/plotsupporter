@@ -256,10 +256,22 @@ easy_barplot <- function(
   does_x2_exist <- !is.null(x2)
   if (!does_x2_exist) x2 <- rep('A', length(y))
 
+  # NAを除去
+  is_na <- is.na(y)
+  x1 <- x1[!is_na]
+  x2 <- x2[!is_na]
+  y  <- y [!is_na]
+
   # x1, x2を因子に変換
   # glht関数はxがfactorでないとエラーを出す
   x1 <- as.factor(x1)
   x2 <- as.factor(x2)
+
+  # NAの除去に伴い、データのなくなったレベルを除去
+  if (remove_level_without_data) {
+    x1 <- droplevels(x1)
+    x2 <- droplevels(x2)
+  }
 
   # 棒の間のスペースを設定
   if (is.na(bar_space_x1)) {

@@ -43,6 +43,21 @@ test_that('no data in a group', {
   easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y, test_method = 'dunnett')
   easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y, test_method = 'dunnett', remove_level_without_data = TRUE)
 
+
+  dat2 <- within(dat, {
+    y[x1 == 'a' & x2 == 'A'] <- NA
+  })
+
+  easy_barplot(x1 = dat1$x1, y = dat1$y)
+  easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y)
+  easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y, remove_level_without_data = TRUE)
+
+  easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y, test_method = 'tukey')
+  easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y, test_method = 'tukey', remove_level_without_data = TRUE)
+
+  easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y, test_method = 'dunnett')
+  easy_barplot(x1 = dat1$x1, x2 = dat1$x2, y = dat1$y, test_method = 'dunnett', remove_level_without_data = TRUE)
+
 })
 test_that('bar options', {
 
