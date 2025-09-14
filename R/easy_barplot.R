@@ -1,10 +1,6 @@
 create_label <- function(aov_res, test_method) {
 
-  if (is.null(test_method)) {
-
-    return(NA)
-
-  } else if (identical(test_method, 'tukey')) {
+  if (identical(test_method, 'tukey')) {
 
     glht_res_i <- glht(aov_res, linfct = mcp(x1 = 'Tukey'))
     return(cld(glht_res_i, decreasing = FALSE)$mcletters$Letters)
@@ -330,25 +326,29 @@ easy_barplot <- function(
 
   # 差を検定
   x1x2_levs$label <- NA
-  for (x2_lev_i in levels(x2)) {
+  if (!is.null(test_method)) {
 
-    # 分散分析
-    aov_dat_i <- data.frame(x1 = x1, x2 = x2, y = y)
-    aov_dat_i <- subset(aov_dat_i, x2 == x2_lev_i)
-    aov_res_i <- aov(y ~ x1, data = aov_dat_i)
+    for (x2_lev_i in levels(x2)) {
 
-    # 検定
-    label_i <- create_label(aov_res_i, test_method)
+      # 分散分析
+      aov_dat_i <- data.frame(x1 = x1, x2 = x2, y = y)
+      aov_dat_i <- subset(aov_dat_i, x2 == x2_lev_i)
+      aov_res_i <- aov(y ~ x1, data = aov_dat_i)
 
-    # 検定結果を保存
-    sel_i <- x1x2_levs$x2 == x2_lev_i
-    matcher_i <- match(names(label_i), x1x2_levs[sel_i, 'x1'])
-    x1x2_levs[sel_i, 'label'][matcher_i] <- label_i
+      # 検定
+      label_i <- create_label(aov_res_i, test_method)
+
+      # 検定結果を保存
+      sel_i <- x1x2_levs$x2 == x2_lev_i
+      matcher_i <- match(names(label_i), x1x2_levs[sel_i, 'x1'])
+      x1x2_levs[sel_i, 'label'][matcher_i] <- label_i
+
+    }
+
+    # "n.s."を表示しない場合は消す
+    x1x2_levs$label <- gsub('^n\\.s\\.$', '', x1x2_levs$label)
 
   }
-
-  # "n.s."を表示しない場合は消す
-  x1x2_levs$label <- gsub('^n\\.s\\.$', '', x1x2_levs$label)
 
 
   # 作図の詳細を決定 ===========================================================
