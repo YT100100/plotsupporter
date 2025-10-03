@@ -8,10 +8,16 @@ easy_barplot(
   y,
   x1,
   x2 = NULL,
+  remove_level_without_data = FALSE,
   test_method = NULL,
+  show_ns = TRUE,
   signif_label_at_top = TRUE,
   signif_label_cex = 1,
   signif_label_space = 0.03,
+  signif_label_adj = c(0.5, 0.5),
+  signif_label_col = "black",
+  signif_label_font = 1,
+  signif_label_srt = 0,
   bar_space_x1 = NA,
   bar_space_x2 = NA,
   bar_col = NULL,
@@ -29,8 +35,18 @@ easy_barplot(
   point_cex = 1,
   point_pch = 1,
   point_lwd = 1,
-  axis_label_x2_line = 2,
-  y_space = 0.03,
+  show_axis_label = c(TRUE, TRUE, TRUE),
+  axis_label_x1 = NULL,
+  axis_label_x2 = NULL,
+  axis_label_line = c(1, 2, 1),
+  axis_label_srt = c(90, 0, 90),
+  axis_label_font = c(1, 1, 1),
+  axis_label_col = c("black", "black", "black"),
+  axis_label_cex = c(1, 1, 1),
+  axis_tick_x_at = "x1",
+  axis_tick_lwd = c(1, 1),
+  axis_tick_length = c(-0.5, -0.5),
+  panel_space_prop = 0.03,
   main = "",
   xlab = "",
   ylab = "",
@@ -57,17 +73,37 @@ The length should be the same as \code{y}.}
 \item{x2}{An optional factor vector used for grouping bars.
 The length should be the same as \code{y}.}
 
+\item{remove_level_without_data}{Logical. Should the levels of \code{x1}
+without data be removed?}
+
 \item{test_method}{A character determining how the differences among groups
 should be tested. \code{'tukey'} or \code{'dunnett'} can be given.
 If \code{NULL}, no test will be applied.
 If \code{x2} is provided, the tests will be applied for
 each groups of \code{x2} independently.}
 
+\item{show_ns}{Logical. Should the text "n.s." be shown
+if the difference was not significantly different from 0?}
+
 \item{signif_label_at_top}{Logical.
 Should the labels shown at the top of the bars?}
 
 \item{signif_label_space}{Space between labels and any nearest object
 (either of bars, error bars, or points).}
+
+\item{signif_label_adj}{Adjustment of the labels.
+A numeric vector of length two of which elements in \eqn{[0, 1]}
+should be given.
+The label position is adjusted to left if the first element is 0
+and right if 1.
+The label position is adjusted to bottom if the second element is 0
+and top if 1.}
+
+\item{signif_label_col}{Label color.}
+
+\item{signif_label_font}{Label font.}
+
+\item{signif_label_srt}{Label rotation angle.}
 
 \item{bar_space_x1}{Space width between bars.
 Default value is 0.2 if \code{x2} is \code{NULL} and otherwise 0.}
@@ -111,9 +147,50 @@ otherwise \code{0}.}
 
 \item{point_lwd}{Point line width.}
 
-\item{axis_label_x2_line}{Distance between panel border and x-axis label of \code{x2}.}
+\item{show_axis_label}{Logical vector with three elements
+indicating whether the \code{x1}, \code{x2}, and \code{y} axis labels
+should be written.}
 
-\item{y_space}{Space between the highest/lowest object and panel border.}
+\item{axis_label_x1}{Axis labels for \code{x1}.
+Its length must be the same as the number of levels of \code{x1}.
+If \code{NULL}, levels of \code{x1} is given.}
+
+\item{axis_label_x2}{Axis labels for \code{x2}.
+Its length must be the same as the number of levels of \code{x2}.
+If \code{NULL}, levels of \code{x2} is given.}
+
+\item{axis_label_line}{Numeric vector with three elements
+indicating the distance between axis labels and panel
+for \code{x1}, \code{x2}, and \code{y}.}
+
+\item{axis_label_srt}{Numeric vector with three elements
+indicating the angle of axis labels
+for \code{x1}, \code{x2}, and \code{y}.}
+
+\item{axis_label_font}{Numeric vector with three elements
+indicating the font of axis labels
+for \code{x1}, \code{x2}, and \code{y}.}
+
+\item{axis_label_col}{Numeric vector with three elements
+indicating color of axis labels
+for \code{x1}, \code{x2}, and \code{y}.}
+
+\item{axis_label_cex}{Numeric vector with three elements
+indicating the size of axis labels
+for \code{x1}, \code{x2}, and \code{y}.}
+
+\item{axis_tick_x_at}{If \code{'x1'} or \code{'x2'},
+tick marks of x-axis will be drawn
+at the place of axis labels of \code{x1} or \code{x2}, respectively.
+Otherwise, the tick marks will not be drawn.}
+
+\item{axis_tick_lwd}{Line widths of the tick marks in x- and y- axes.}
+
+\item{axis_tick_length}{Lengths of the tick marks in x- and y- axes.
+Negative values indicate that the tick marks will be drawn toward
+outside of the panel. If positive, it will be toward inside of the panel.}
+
+\item{panel_space_prop}{Space between the highest/lowest object and panel border.}
 
 \item{main}{Title.}
 
@@ -146,6 +223,8 @@ otherwise \code{0}.}
 \item{ylab_col}{Title size of y-axis.}
 
 \item{signif_label_size}{Label size.}
+
+\item{axis_label_x2_line}{Distance between panel border and x-axis label of \code{x2}.}
 }
 \description{
 This function is a wrapper of \code{\link[graphics]{barplot}} function.

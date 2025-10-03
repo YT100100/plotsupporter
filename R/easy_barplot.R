@@ -1,10 +1,6 @@
 create_label <- function(aov_res, test_method) {
 
-  if (is.null(test_method)) {
-
-    return(NA)
-
-  } else if (identical(test_method, 'tukey')) {
+  if (identical(test_method, 'tukey')) {
 
     glht_res_i <- glht(aov_res, linfct = mcp(x1 = 'Tukey'))
     return(cld(glht_res_i, decreasing = FALSE)$mcletters$Letters)
@@ -14,7 +10,10 @@ create_label <- function(aov_res, test_method) {
     glht_res <- glht(aov_res, linfct = mcp(x1 = 'Dunnett'))
     pval <- summary(glht_res)$test$pvalues
     mark <- convert_pval_to_txt(pval)
-    return(c('', mark))
+
+    mark <- c('', mark)
+    names(mark) <- aov_res$xlevels$x1
+    return(mark)
 
   } else {
 
@@ -59,11 +58,16 @@ extend_ylim <- function(ylim, y, panel_space_prop) {
 #' @param x2 An optional factor vector used for grouping bars.
 #'   The length should be the same as \code{y}.
 #'
+#' @param remove_level_without_data Logical. Should the levels of \code{x1}
+#'   without data be removed?
+#'
 #' @param test_method A character determining how the differences among groups
 #'   should be tested. \code{'tukey'} or \code{'dunnett'} can be given.
 #'   If \code{NULL}, no test will be applied.
 #'   If \code{x2} is provided, the tests will be applied for
 #'   each groups of \code{x2} independently.
+#' @param show_ns Logical. Should the text "n.s." be shown
+#'   if the difference was not significantly different from 0?
 #' @param signif_label_at_top Logical.
 #'   Should the labels shown at the top of the bars?
 #' @param signif_label_size Label size.
@@ -108,14 +112,13 @@ extend_ylim <- function(ylim, y, panel_space_prop) {
 #' @param point_pch Point shape.
 #' @param point_lwd Point line width.
 #'
-#'
 #' @param show_axis_label Logical vector with three elements
 #'   indicating whether the \code{x1}, \code{x2}, and \code{y} axis labels
 #'   should be written.
 #' @param axis_label_x1 Axis labels for \code{x1}.
 #'   Its length must be the same as the number of levels of \code{x1}.
 #'   If \code{NULL}, levels of \code{x1} is given.
-#' @param axis_label_x1 Axis labels for \code{x2}.
+#' @param axis_label_x2 Axis labels for \code{x2}.
 #'   Its length must be the same as the number of levels of \code{x2}.
 #'   If \code{NULL}, levels of \code{x2} is given.
 #' @param axis_label_line Numeric vector with three elements
@@ -134,7 +137,7 @@ extend_ylim <- function(ylim, y, panel_space_prop) {
 #'   indicating the size of axis labels
 #'   for \code{x1}, \code{x2}, and \code{y}.
 #'
-#' @param axis_tick_x_at If \code{'x1'} or \code{'x2},
+#' @param axis_tick_x_at If \code{'x1'} or \code{'x2'},
 #'   tick marks of x-axis will be drawn
 #'   at the place of axis labels of \code{x1} or \code{x2}, respectively.
 #'   Otherwise, the tick marks will not be drawn.
@@ -171,7 +174,15 @@ extend_ylim <- function(ylim, y, panel_space_prop) {
 easy_barplot <- function(
     y, x1, x2 = NULL,
 
+    remove_level_without_data = FALSE,
+
     test_method = NULL,
+    # test_target = c('x1', 'x2', 'x1x2'),
+    # compare_with_control = FALSE,
+    # control_level = NULL,
+    # assume_normality = TRUE,
+
+    show_ns = TRUE,
     signif_label_at_top = TRUE,
     signif_label_cex = 1,
     signif_label_space = 0.03,
@@ -241,10 +252,22 @@ easy_barplot <- function(
   does_x2_exist <- !is.null(x2)
   if (!does_x2_exist) x2 <- rep('A', length(y))
 
+  # NAを除去
+  is_na <- is.na(y)
+  x1 <- x1[!is_na]
+  x2 <- x2[!is_na]
+  y  <- y [!is_na]
+
   # x1, x2を因子に変換
   # glht関数はxがfactorでないとエラーを出す
   x1 <- as.factor(x1)
   x2 <- as.factor(x2)
+
+  # NAの除去に伴い、データのなくなったレベルを除去
+  if (remove_level_without_data) {
+    x1 <- droplevels(x1)
+    x2 <- droplevels(x2)
+  }
 
   # 棒の間のスペースを設定
   if (is.na(bar_space_x1)) {
@@ -274,35 +297,74 @@ easy_barplot <- function(
 
 
   # 必要な数値を算出 ===========================================================
+
+  # x1とx2の組み合わせを作成
+  x1x2_levs <- expand.grid(x1 = levels(x1), x2 = levels(x2))
+  x1x2_levs$n <- sapply(seq_len(nrow(x1x2_levs)), function(i) {
+    vals <- y[x1 == x1x2_levs[i, 'x1'] & x2 == x1x2_levs[i, 'x2']]
+    vals <- vals[!is.na(vals)]
+    length(vals)
+  })
+  if (remove_level_without_data) {
+    x1x2_levs <- subset(x1x2_levs, n >= 1)
+  }
+
+  # 棒のスペースを作成
+  x2_len <- cumsum(rle(as.character(x1x2_levs$x2))$lengths)
+  x1x2_levs$space <- bar_space_x1
+  x1x2_levs$space[x2_len[-length(x2_len)] + 1] <- bar_space_x2
+
   # 平均と標準偏差を計算
-  mat_mean <- tapply(y, list(x1, x2), mean, na.rm = TRUE)
-  mat_sd   <- tapply(y, list(x1, x2), sd  , na.rm = TRUE)
+  x1x2_levs$meanval <- sapply(seq_len(nrow(x1x2_levs)), function(i) {
+    vals <- y[x1 == x1x2_levs[i, 'x1'] & x2 == x1x2_levs[i, 'x2']]
+    mean(vals, na.rm = TRUE)
+  })
+  x1x2_levs$sdval <- sapply(seq_len(nrow(x1x2_levs)), function(i) {
+    vals <- y[x1 == x1x2_levs[i, 'x1'] & x2 == x1x2_levs[i, 'x2']]
+    sd(vals, na.rm = TRUE)
+  })
 
   # 差を検定
-  label <- matrix(NA, nrow = nlevels(x1), ncol = nlevels(x2))
-  rownames(label) <- levels(x1)
-  colnames(label) <- levels(x2)
-  for (x2_lev_i in levels(x2)) {
+  x1x2_levs$label <- NA
+  if (!is.null(test_method)) {
 
-    aov_dat_i <- data.frame(x1 = x1, x2 = x2, y = y)
-    aov_dat_i <- subset(aov_dat_i, x2 == x2_lev_i)
-    aov_res_i <- aov(y ~ x1, data = aov_dat_i)
-    label[, x2_lev_i] <- create_label(aov_res_i, test_method)
+    for (x2_lev_i in levels(x2)) {
+
+      # 分散分析
+      aov_dat_i <- data.frame(x1 = x1, x2 = x2, y = y)
+      aov_dat_i <- subset(aov_dat_i, x2 == x2_lev_i)
+      aov_res_i <- aov(y ~ x1, data = aov_dat_i)
+
+      # 検定
+      label_i <- create_label(aov_res_i, test_method)
+
+      # 検定結果を保存
+      sel_i <- x1x2_levs$x2 == x2_lev_i
+      matcher_i <- match(names(label_i), x1x2_levs[sel_i, 'x1'])
+      x1x2_levs[sel_i, 'label'][matcher_i] <- label_i
+
+    }
+
+    # "n.s."を表示しない場合は消す
+    x1x2_levs$label <- gsub('^n\\.s\\.$', '', x1x2_levs$label)
 
   }
 
 
   # 作図の詳細を決定 ===========================================================
   # エラーバーのy座標
-  errorbar_ymin <- mat_mean - mat_sd
-  errorbar_ymax <- mat_mean + mat_sd
+  x1x2_levs <- within(x1x2_levs, {
+    errorbar_ymin <- meanval - sdval
+    errorbar_ymax <- meanval + sdval
+  })
 
   # y軸の範囲を決める
-  ylim <- range(mat_mean, na.rm = TRUE)
+  ylim <- range(x1x2_levs$meanval, na.rm = TRUE)
   ylim[1] <- pmin(ylim[1], 0)
   ylim[2] <- pmax(ylim[2], 0)
   if (show_errorbar) {
-    ylim <- extend_ylim(ylim, c(errorbar_ymin, errorbar_ymax), panel_space_prop)
+    ylim <- extend_ylim(
+      ylim, x1x2_levs[, c('errorbar_ymin', 'errorbar_ymax')], panel_space_prop)
   }
   if (show_point) {
     ylim <- extend_ylim(ylim, y, panel_space_prop)
@@ -311,77 +373,106 @@ easy_barplot <- function(
   # 有意ラベルのy座標
   if (signif_label_at_top) {
 
-    point_ymax <- tapply(y, list(x1, x2), max, na.rm = TRUE)
-    if (show_errorbar & show_point) {
-      signif_label_y <- pmax(errorbar_ymax, point_ymax)
+    # 各xの点の中で最大の値を取得
+    x1x2_levs$point_ymax <- sapply(seq_len(nrow(x1x2_levs)), function(i) {
+      vals <- y[x1 == x1x2_levs[i, 'x1'] & x2 == x1x2_levs[i, 'x2']]
+      if (length(vals) == 0) return(NA)
+      max(vals, na.rm = TRUE)
+    })
+
+    # 表示モードに従って座標を決定
+    x1x2_levs$signif_label_y <- if (show_errorbar & show_point) {
+      pmax(x1x2_levs$errorbar_ymax, x1x2_levs$point_ymax)
     } else if (show_errorbar) {
-      signif_label_y <- errorbar_ymax
+      x1x2_levs$errorbar_ymax
     } else if (show_point) {
-      signif_label_y <- point_ymax
+      x1x2_levs$point_ymax
     } else {
-      signif_label_y <- mat_mean
+      x1x2_levs$meanval
     }
-    signif_label_y <- signif_label_y + diff(ylim) * signif_label_space
+
+    # 他オブジェクトとの距離を確保
+    x1x2_levs$signif_label_y <-
+      x1x2_levs$signif_label_y + diff(ylim) * signif_label_space
 
   } else {
 
-    point_ymin <- tapply(y, list(x1, x2), min, na.rm = TRUE)
-    if (show_errorbar & show_point) {
-      signif_label_y <- pmin(errorbar_ymin, point_ymin)
+    # 各xの点の中で最大の値を取得
+    x1x2_levs$point_ymin <- sapply(seq_len(nrow(x1x2_levs)), function(i) {
+      vals <- y[x1 == x1x2_levs[i, 'x1'] & x2 == x1x2_levs[i, 'x2']]
+      min(vals, na.rm = TRUE)
+    })
+
+    # 表示モードに従って座標を決定
+    x1x2_levs$signif_label_y <- if (show_errorbar & show_point) {
+      pmin(x1x2_levs$errorbar_ymin, x1x2_levs$point_ymin)
     } else if (show_errorbar) {
-      signif_label_y <- errorbar_ymin
+      x1x2_levs$errorbar_ymin
     } else if (show_point) {
-      signif_label_y <- point_ymin
+      x1x2_levs$point_ymin
     } else {
-      signif_label_y <- mat_mean
+      x1x2_levs$meanval
     }
-    signif_label_y <- signif_label_y - diff(ylim) * signif_label_space
+
+    # 他オブジェクトとの距離を確保
+    x1x2_levs$signif_label_y <-
+      x1x2_levs$signif_label_y - diff(ylim) * signif_label_space
 
   }
 
   # y軸の範囲を更新
   if (!is.null(test_method)) {
-    ylim <- extend_ylim(ylim, signif_label_y, panel_space_prop)
+    ylim <- extend_ylim(ylim, x1x2_levs$signif_label_y, panel_space_prop)
   }
 
 
   # 作図 =======================================================================
   # 棒グラフ
   op <- par(lwd = bar_lwd)
-  bar_pos <- barplot(
-    mat_mean, beside = TRUE, ylim = ylim, xaxt = 'n', yaxt = 'n',
-    space = c(bar_space_x1, bar_space_x2),
+  x1x2_levs$bar_pos <- barplot(
+    x1x2_levs$meanval, beside = TRUE, space = x1x2_levs$space,
+    ylim = ylim, xaxt = 'n', yaxt = 'n',
     col = bar_col, border = bar_border)
   par(op)
-  rownames(bar_pos) <- levels(x1)
-  colnames(bar_pos) <- levels(x2)
 
   # ラベル
-  text(x = bar_pos, y = signif_label_y, labels = label,
-       cex = signif_label_cex, adj = signif_label_adj,
-       col = signif_label_col, font = signif_label_font,
-       srt = signif_label_srt)
+  with(x1x2_levs, {
+    text(x = bar_pos, y = signif_label_y, labels = label,
+         cex = signif_label_cex, adj = signif_label_adj,
+         col = signif_label_col, font = signif_label_font,
+         srt = signif_label_srt)
+  })
 
   # エラーバー
   if (show_errorbar) {
-    arrows(x0 = bar_pos + errorbar_shift, y0 = errorbar_ymin,
-           x1 = bar_pos + errorbar_shift, y1 = errorbar_ymax,
-           length = errorbar_length, angle = 90, code = 3,
-           col = errorbar_col, lwd = errorbar_lwd)
+    with(x1x2_levs, {
+      arrows(x0 = bar_pos + errorbar_shift, y0 = errorbar_ymin,
+             x1 = bar_pos + errorbar_shift, y1 = errorbar_ymax,
+             length = errorbar_length, angle = 90, code = 3,
+             col = errorbar_col, lwd = errorbar_lwd)
+    })
   }
 
   # データ点
   if (show_point) {
-    points(x = bar_pos[cbind(x1, x2)] + point_shift, y = y,
-           pch = point_pch, col = point_color, bg = point_bg, cex = point_cex,
-           lwd = point_lwd)
+    point_x <- mapply(function(x1_i, x2_i) {
+      x1x2_levs$bar_pos[x1x2_levs$x1 == x1_i & x1x2_levs$x2 == x2_i]
+    }, x1_i = x1, x2_i = x2)
+    with(x1x2_levs, {
+      points(x = point_x + point_shift, y = y,
+             pch = point_pch, col = point_color, bg = point_bg, cex = point_cex,
+             lwd = point_lwd)
+    })
   }
 
   # x軸目盛
+  bar_pos_x2mean <- tapply(x1x2_levs$bar_pos, x1x2_levs$x2, mean)
   axis_x_at <- if (identical(axis_tick_x_at, 'x1')) {
-    bar_pos
+    x1x2_levs$bar_pos
   } else if (identical(axis_tick_x_at, 'x2')) {
-    colMeans(bar_pos)
+    bar_pos_x2mean
+  } else {
+    NULL
   }
   axis(1, at = axis_x_at, labels = NA,
        lwd.ticks = axis_tick_lwd[1], tcl = axis_tick_length[1])
@@ -394,14 +485,14 @@ easy_barplot <- function(
   # 軸ラベル
   if (show_axis_label[1]) {
     axis_label(
-      1, at = bar_pos, labels = rep(rownames(bar_pos), ncol(bar_pos)),
+      1, at = x1x2_levs$bar_pos, labels = x1x2_levs$x1,
       line = axis_label_line[1], srt = axis_label_srt[1],
       font = axis_label_font[1], col = axis_label_col[1],
       cex  = axis_label_cex [1])
   }
   if (show_axis_label[2]) {
     axis_label(
-      1, at = colMeans(bar_pos), labels = levels(x2),
+      1, at = bar_pos_x2mean, labels = names(bar_pos_x2mean),
       line = axis_label_line[2], srt = axis_label_srt[2],
       font = axis_label_font[2], col = axis_label_col[2],
       cex  = axis_label_cex [2])
@@ -424,6 +515,8 @@ easy_barplot <- function(
 
   # パネル
   box()
+
+  invisible(x1x2_levs)
 
 }
 
