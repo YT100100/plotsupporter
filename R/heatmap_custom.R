@@ -1,6 +1,5 @@
 #' カラーバーを描画する関数
 #' @export
-#'
 
 colorbar <- function(
     x, y,
@@ -153,7 +152,7 @@ colorbar <- function(
 
   } else {
 
-    barseg_yall <- seq(bar_ytop, bar_ybottom, length.out = n_bar_col + 1)
+    barseg_yall <- seq(bar_ybottom, bar_ytop, length.out = n_bar_col + 1)
     barseg_xleft   <- bar_xleft
     barseg_xright  <- bar_xright
     barseg_ytop    <- barseg_yall[-(n_bar_col + 1)]
